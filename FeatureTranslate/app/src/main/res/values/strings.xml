@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FeatureTranslate</string>
+    <string name="file_name">书名</string>
+    <string name="file_path">路径</string>
+</resources>

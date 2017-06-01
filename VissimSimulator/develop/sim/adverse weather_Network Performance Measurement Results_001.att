@@ -1,0 +1,27 @@
+$VISION
+* 文件:		e:\快盘-不良天气\vissim仿真及标定\不良天气仿真\adverse weather.inpx
+* 注释:	
+* 日期:		2017/5/10 16:44:11
+* PTV Vissim:	7.00 [04]
+* 
+* Table: Network Performance Measurement Results
+* 
+* SIMRUN: 仿真运行
+* TIMEINT: 时间间隔
+* DELAYAVG(ALL): 延误（平均） (全部) [s]
+* STOPSAVG(ALL): 停车次数（平均值） (全部)
+* SPEEDAVG(ALL): 速度（平均值） (全部) [km/h]
+* DELAYSTOPAVG(ALL): 停车延误（平均） (全部) [s]
+* DISTTOT(ALL): 距离（总） (全部) [km]
+* TRAVTMTOT(ALL): 出行时间（总） (全部) [s]
+* DELAYTOT(ALL): 延误（总） (全部) [s]
+* STOPSTOT(ALL): 停车次数（总） (全部)
+* DELAYSTOPTOT(ALL): 停车延误（总） (全部) [s]
+* VEHACT(ALL): 车辆（激活的） (全部)
+* VEHARR(ALL): 车辆（到达的） (全部)
+* DELAYLATENT: 延误（潜在） [s]
+* DEMANDLATENT: 需求（潜在）
+*
+$NETWORKPERFORMANCEMEASUREMENTEVALUATION:SIMRUN;TIMEINT;DELAYAVG(ALL);STOPSAVG(ALL);SPEEDAVG(ALL);DELAYSTOPAVG(ALL);DISTTOT(ALL);TRAVTMTOT(ALL);DELAYTOT(ALL);STOPSTOT(ALL);DELAYSTOPTOT(ALL);VEHACT(ALL);VEHARR(ALL);DELAYLATENT;DEMANDLATENT
+1;1200-3600;49.76;1.91;38.00;23.81;43188.53;4091248.00;1200555.93;45969;574373.77;1746;22380;2757077.67;1861.00
+

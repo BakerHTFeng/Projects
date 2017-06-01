@@ -24,35 +24,34 @@ class UI:
         elif self.data_input == '':
             showerror(title='数据错误', message='无输入数据')
         else:
-            msg = '请确认车辆输入:\n'
             data = open_workbook(self.get_data())
-            vehicle_inputs = data.sheet_by_name(u'vehicle_inputs')
-            for i in range(vehicle_inputs.nrows):
-                msg += str(vehicle_inputs.row_values(i))
-                msg += '\n'
-            choice = askyesno(title='数据确认', message=msg)
+            choice = askyesno(title='输入数据确认', message=self.get_data())
             if choice == TRUE:
                 self.__run_simulation__()
 
     def __load_net__(self):
         f_types = [('Net', '*.inpx')]
-        filename = askopenfilename(initialdir=os.getcwd(), title='Load Net', filetypes=f_types)
+        filename = askopenfilename(initialdir=self.default_path, title='Load Net', filetypes=f_types)
+        self.default_path = os.path.abspath(filename)
         self.e1.delete(0, END)
         self.e1.insert(0, filename)
 
     def __load_layout__(self):
         f_types = [('Layout', '*.layx')]
-        filename = askopenfilename(initialdir=os.getcwd(), title='Load Layout', filetypes=f_types)
+        filename = askopenfilename(initialdir=self.default_path, title='Load Layout', filetypes=f_types)
+        self.default_path = os.path.abspath(filename)
         self.e2.delete(0, END)
         self.e2.insert(0, filename)
 
     def __data_input__(self):
         f_types = [('Excel', '*.xls;*.xlsx')]
-        filename = askopenfilename(initialdir=os.getcwd(), title='Data Input', filetypes=f_types)
+        filename = askopenfilename(initialdir=self.default_path, title='Data Input', filetypes=f_types)
+        self.default_path = os.path.abspath(filename)
         self.e3.delete(0, END)
         self.e3.insert(0, filename)
 
     def __run_simulation__(self):
+        self.inputDlg.withdraw()
         try:
             vissim = Vissim()
             vissim.open()
@@ -60,6 +59,7 @@ class UI:
             vissim.load_layout(self.get_layout())
             vissim.set_data(self.get_data())
             vissim.run()
+            showinfo('仿真结束','仿真已结束！点击确定关闭。')
         except KeyboardInterrupt:
             print('[!] Interrupted')
         except Exception as e:
@@ -67,7 +67,6 @@ class UI:
         finally:
             if vissim is not None:
                 vissim.close()
-            showinfo('仿真结束','仿真已结束！')
             self.inputDlg.quit()
             self.inputDlg.destroy()
 
@@ -88,6 +87,7 @@ class UI:
         self.net_name = str
         self.layout_name = str
         self.data_input = str
+        self.default_path = os.getcwd()
 
         if __type == 'input':
             self.inputDlg.geometry('500x180')
@@ -126,7 +126,7 @@ class UI:
 
             # Row 5
             Button(self.inputDlg, text='开始仿真', font=('微软雅黑', 11, 'bold', 'italic'), command=self.__commit__)\
-                .grid(row=4, columnspan=4)
+                .grid(row=4, column=1)
 
     def show(self, __type='input'):
         if __type == 'input':
@@ -154,19 +154,19 @@ class Vissim():
 
     def run(self, mode='continuous'):
         # 设置仿真参数
-        self.Vissim.Simulation.SetAttValue('NumCores',4)
-        self.Vissim.Simulation.SetAttValue('SimPeriod',600)
+        # self.Vissim.Simulation.SetAttValue('NumCores',4)
+        # self.Vissim.Simulation.SetAttValue('SimPeriod',600)
 
         # 设置评估结果参数
-        self.Vissim.Evaluation.SetAttValue('VehRecWriteFile',True)
-        self.Vissim.Evaluation.SetAttValue('VehTravTmRawWriteFile',True)
-        self.Vissim.Evaluation.SetAttValue('EvalOutDir',os.getcwd()+'\\results')
+        # self.Vissim.Evaluation.SetAttValue('VehRecWriteFile',True)
+        # self.Vissim.Evaluation.SetAttValue('VehTravTmRawWriteFile',True)
+        # self.Vissim.Evaluation.SetAttValue('EvalOutDir',os.getcwd()+'\\results')
 
         # 根据输入文件设置参数
-        self.__set_vehicle_routes__()
         self.__set_link__()
         self.__set_vehicle_inputs__()
         self.__set_vehicle_routing_decisions__()
+        self.__set_vehicle_routes__()
         self.__set_vehicle_compositions__()
         self.__set_driving_behaviors__()
         if mode == 'step':
@@ -181,10 +181,13 @@ class Vissim():
         vehicle_routes = self.data.sheet_by_name(u'vehicle_routes')
         for i in range(vehicle_routes.nrows - 1):
             routes = self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(vehicle_routes.cell(i + 1, 0).value)\
-                .Link.VehRoutSta.GetAll()
-            routes[int(vehicle_routes.cell(i + 1, 1).value) - 1].SetAttValue('Name', vehicle_routes.cell(i + 1, 2).value)
-            routes[int(vehicle_routes.cell(i + 1, 1).value) - 1].SetAttValue('DestLink', vehicle_routes.cell(i + 1, 3).value)
-            routes[int(vehicle_routes.cell(i + 1, 1).value) - 1].SetAttValue('DestPos', vehicle_routes.cell(i + 1, 4).value)
+                .VehRoutSta.GetAll()
+            no = int(vehicle_routes.cell(i + 1, 1).value) - 1
+            routes[no].SetAttValue('No', no + 1)
+            routes[no].SetAttValue('Name', vehicle_routes.cell(i + 1, 2).value)
+            routes[no].SetAttValue('DestLink', vehicle_routes.cell(i + 1, 3).value)
+            routes[no].SetAttValue('DestPos', vehicle_routes.cell(i + 1, 4).value)
+            routes[no].SetAttValue('RelFlow(1)', vehicle_routes.cell(i + 1, 5).value)
 
     def __set_link__(self):
         links = self.data.sheet_by_name(u'links')
@@ -197,43 +200,45 @@ class Vissim():
     def __set_driving_behaviors__(self):
         driving_behaviors = self.data.sheet_by_name(u'driving_behaviors')
         for i in range(driving_behaviors.nrows - 1):
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('No', driving_behaviors.cell(i + 1, 0).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('Name', driving_behaviors.cell(i + 1, 1).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc0', driving_behaviors.cell(i + 1, 2).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc1', driving_behaviors.cell(i + 1, 3).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc2', driving_behaviors.cell(i + 1, 4).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc3', driving_behaviors.cell(i + 1, 5).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc4', driving_behaviors.cell(i + 1, 6).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc5', driving_behaviors.cell(i + 1, 7).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc6', driving_behaviors.cell(i + 1, 8).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc7', driving_behaviors.cell(i + 1, 9).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc8', driving_behaviors.cell(i + 1, 10).value)
-            self.Vissim.Net.DrivingBehaviors.ItemByKey(6)\
+            self.Vissim.Net.DrivingBehaviors.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
                 .SetAttValue('W99cc9', driving_behaviors.cell(i + 1, 11).value)
-        self.Vissim.Net.LinkBehaviorTypes.ItemByKey(6).SetAttValue('Name','自定义')
-        self.Vissim.Net.LinkBehaviorTypes.ItemByKey(6).SetAttValue('DrivBehavDef',6)
+            self.Vissim.Net.LinkBehaviorTypes.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
+                .SetAttValue('Name', driving_behaviors.cell(i + 1, 1).value)
+            self.Vissim.Net.LinkBehaviorTypes.ItemByKey(driving_behaviors.cell(i + 1, 0).value)\
+                .SetAttValue('DrivBehavDef', i + 1)
 
     def __set_vehicle_routing_decisions__(self):
         vehicle_routing_decisions = self.data.sheet_by_name(u'vehicle_routing_decisions')
         for i in range(vehicle_routing_decisions.nrows - 1):
-            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(i + 1)\
+            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(vehicle_routing_decisions.cell(i + 1, 0).value)\
                 .SetAttValue('No', vehicle_routing_decisions.cell(i + 1, 0).value)
-            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(i + 1)\
+            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(vehicle_routing_decisions.cell(i + 1, 0).value)\
                 .SetAttValue('Name', vehicle_routing_decisions.cell(i + 1, 1).value)
-            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(i + 1)\
+            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(vehicle_routing_decisions.cell(i + 1, 0).value)\
                 .SetAttValue('Link', vehicle_routing_decisions.cell(i + 1, 2).value)
-            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(i + 1)\
+            self.Vissim.Net.VehicleRoutingDecisionsStatic.ItemByKey(vehicle_routing_decisions.cell(i + 1, 0).value)\
                 .SetAttValue('Pos', vehicle_routing_decisions.cell(i + 1, 3).value)
 
     def __set_vehicle_compositions__(self):
@@ -278,3 +283,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# pyinstaller VissimSimulator.py -F -w -i="icon/VissimSimulator.ico" -p "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64"

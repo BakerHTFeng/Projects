@@ -1,0 +1,28 @@
+$VISION
+* File:		d:\programming\git\projects\vissimsimulator\develop\sim\adverse weather.inpx
+* Comment:	
+* Date:		2017/5/15 11:25:30
+* PTV Vissim:	7.00 [09]
+* 
+* Table: Vehicle Network Performance Evaluation Results
+* 
+* SIMRUN: SimRun, Simulation run
+* TIMEINT: TimeInt, Time interval
+* DELAYAVG(ALL): DelayAvg(All), Delay (average) (All) [s]
+* STOPSAVG(ALL): StopsAvg(All), Stops (average) (All)
+* SPEEDAVG(ALL): SpeedAvg(All), Speed (average) (All) [km/h]
+* DELAYSTOPAVG(ALL): DelayStopAvg(All), Delay stopped (average) (All) [s]
+* DISTTOT(ALL): DistTot(All), Distance (total) (All) [km]
+* TRAVTMTOT(ALL): TravTmTot(All), Travel time (total) (All) [s]
+* DELAYTOT(ALL): DelayTot(All), Delay (total) (All) [s]
+* STOPSTOT(ALL): StopsTot(All), Stops (total) (All)
+* DELAYSTOPTOT(ALL): DelayStopTot(All), Delay stopped (total) (All) [s]
+* VEHACT(ALL): VehAct(All), Vehicles (active) (All)
+* VEHARR(ALL): VehArr(All), Vehicles (arrived) (All)
+* DELAYLATENT: DelayLatent, Delay (latent) [s]
+* DEMANDLATENT: DemandLatent, Demand (latent)
+* SimRun; TimeInt; DelayAvg(All); StopsAvg(All); SpeedAvg(All); DelayStopAvg(All); DistTot(All); TravTmTot(All); DelayTot(All); StopsTot(All); DelayStopTot(All); VehAct(All); VehArr(All); DelayLatent; DemandLatent
+*
+$VEHICLENETWORKPERFORMANCEMEASUREMENTEVALUATION:SIMRUN;TIMEINT;DELAYAVG(ALL);STOPSAVG(ALL);SPEEDAVG(ALL);DELAYSTOPAVG(ALL);DISTTOT(ALL);TRAVTMTOT(ALL);DELAYTOT(ALL);STOPSTOT(ALL);DELAYSTOPTOT(ALL);VEHACT(ALL);VEHARR(ALL);DELAYLATENT;DEMANDLATENT
+1;1200-3600;;;;;;;;;;;;;
+
